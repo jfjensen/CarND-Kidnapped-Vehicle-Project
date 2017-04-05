@@ -11,6 +11,8 @@
 
 #include "helper_functions.h"
 
+using namespace std;
+
 struct Particle {
 
 	int id;
