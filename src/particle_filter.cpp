@@ -17,8 +17,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
-	num_particles = 100;
-	particles.resize(num_particles);
+	num_particles = 5;
+	//particles.resize(num_particles);
 
 	default_random_engine gen;
 
@@ -58,6 +58,58 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+
+	for (int i = 0; i < num_particles; i++)
+	{
+
+		// Particle current_particle;
+		// current_particle = particles[i];
+
+		Particle & current_particle = particles[i];
+
+		double x_f, y_f, theta_f;
+		double x_0, y_0, theta_0;
+
+		x_0     = current_particle.x;
+		y_0     = current_particle.y;
+		theta_0 = current_particle.theta;
+
+		if (fabs(yaw_rate) > 0.0001)
+		{
+			x_f     = x_0 + (velocity / yaw_rate) * (sin(theta_0 + (yaw_rate * delta_t)) - sin(theta_0));
+			y_f     = y_0 + (velocity / yaw_rate) * (cos(theta_0) - cos(theta_0 + (yaw_rate * delta_t)));
+			theta_f = theta_0 + (yaw_rate * delta_t);
+		}
+		else
+		{
+			x_f     = x_0 + velocity * delta_t * cos(theta_0);
+			y_f     = y_0 + velocity * delta_t * sin(theta_0);
+			theta_f = theta_0;
+		}
+
+		default_random_engine gen;
+
+		double std_x     = std_pos[0];
+		double std_y     = std_pos[1];
+
+		normal_distribution<double> dist_x(x_f, std_x);
+		normal_distribution<double> dist_y(y_f, std_y);
+		
+		// particles[i].x = dist_x(gen);
+		// particles[i].y = dist_y(gen);
+		// particles[i].theta = theta_f;
+
+		current_particle.x = dist_x(gen);
+		current_particle.y = dist_y(gen);
+		current_particle.theta = theta_f;
+
+		cout << "Sample " << i + 1 << " " 
+			<< current_particle.x << " " 
+			<< current_particle.y << " " 
+			<< current_particle.theta << " " 
+			<< current_particle.weight << endl;
+
+	}
 
 }
 
