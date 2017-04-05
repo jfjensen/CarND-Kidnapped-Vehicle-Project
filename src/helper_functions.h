@@ -14,6 +14,10 @@
 #include <vector>
 #include "map.h"
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 /*
  * Struct representing one position/control measurement.
  */
@@ -42,6 +46,34 @@ struct LandmarkObs {
 	double x;			// Local (vehicle coordinates) x position of landmark observation [m]
 	double y;			// Local (vehicle coordinates) y position of landmark observation [m]
 };
+
+
+
+//function to normalize a vector:
+std::vector<double> normalize_vector(std::vector<double> inputVector){
+
+	//declare sum:
+	double sum = 0.0f;
+
+	//declare and resize output vector:
+	std::vector<double> outputVector ;
+	outputVector.resize(inputVector.size());
+
+	//estimate the sum:
+	for (unsigned int i = 0; i < inputVector.size(); ++i) {
+		sum += inputVector[i];
+	}
+
+	//normalize with sum:
+	for (unsigned int i = 0; i < inputVector.size(); ++i) {
+		outputVector[i] = inputVector[i]/sum ;
+	}
+
+	//return normalized vector:
+	return outputVector ;
+}
+
+
 
 /*
  * Computes the Euclidean distance between two 2D points.
