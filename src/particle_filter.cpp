@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include <map>
 
 #include "particle_filter.h"
 
@@ -141,6 +142,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	double std_x = std_landmark[0];
 	double std_y = std_landmark[1];
 
+	double sum_weights = 0.0;
+
 	for (int n = 0; n < num_particles; n++)
 	{
 
@@ -163,7 +166,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			obs_x = x_f + (obs.x * cos(theta_f)) - (obs.y * sin(theta_f));
 			obs_y = y_f + (obs.x * sin(theta_f)) + (obs.y * cos(theta_f));
 
-			cout << "Particle: " << n << " w: " << weight << " Landmark: " << obs_x << " " << obs_y ;//<< endl;
+			// cout << "Particle: " << n << " w: " << weight << " Landmark: " << obs_x << " " << obs_y ;//<< endl;
 
 			vector<double> ranges;
 
@@ -183,15 +186,26 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			}
 
 			sort(ranges.begin(), ranges.end());
-			cout << "  ranges: " << ranges[0] << " " << ranges[1] << endl;
+			// cout << "  ranges: " << ranges[0] << " " << ranges[1] << endl;
 			double min_range = ranges[0];
 
 			weight *= exp(-0.5*min_range)/(2*M_PI*std_x*std_y); // seriously??
 
 		}
 
+		weight += 1e-300;
+		current_particle.weight = weight;
+		sum_weights += weight;
+	}
 
-		current_particle.weight = weight + 1e-300; // change this!!
+	for (int n = 0; n < num_particles; n++)
+	{
+
+		Particle & current_particle = particles[n];
+
+		double weight = current_particle.weight;
+
+		current_particle.weight = weight / sum_weights;
 	}
 
 }
@@ -200,6 +214,28 @@ void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+
+	vector<double> particle_weights;
+
+	for (int n = 0; n < num_particles; n++)
+	{
+
+		Particle & current_particle = particles[n];
+
+		double weight = current_particle.weight;
+
+		cout << "Particle: " << n << " w: " << weight << endl;
+
+		particle_weights.push_back(weight);
+		
+	}
+
+
+	
+	for (int n = 0; n < num_particles; n++)
+	{
+
+	}
 
 }
 
