@@ -19,7 +19,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
-	num_particles = 5;
+	num_particles = 10;
 	//particles.resize(num_particles);
 
 	default_random_engine gen;
@@ -81,6 +81,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 			x_f     = x_0 + (velocity / yaw_rate) * (sin(theta_0 + (yaw_rate * delta_t)) - sin(theta_0));
 			y_f     = y_0 + (velocity / yaw_rate) * (cos(theta_0) - cos(theta_0 + (yaw_rate * delta_t)));
 			theta_f = theta_0 + (yaw_rate * delta_t);
+			if (theta_f> M_PI) theta_f = remainder(theta_f, (2.*M_PI)) - M_PI;
+    		if (theta_f<-M_PI) theta_f = remainder(theta_f, (2.*M_PI)) + M_PI;
 		}
 		else
 		{
@@ -163,7 +165,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			LandmarkObs obs = observations[i];
 			double obs_x, obs_y;
 
-			obs_x = x_f + (obs.x * cos(theta_f)) - (obs.y * sin(theta_f));
+			obs_x = x_f + (obs.x * cos(theta_f)) - (obs.y * sin(theta_f));// switched minus sign...
 			obs_y = y_f + (obs.x * sin(theta_f)) + (obs.y * cos(theta_f));
 
 			// cout << "Particle: " << n << " w: " << weight << " Landmark: " << obs_x << " " << obs_y ;//<< endl;
@@ -230,12 +232,35 @@ void ParticleFilter::resample() {
 		
 	}
 
+	vector<Particle> resampled_particles;
 
-	
+	// http://www.cplusplus.com/reference/random/uniform_int_distribution/
+	default_random_engine generator;
+  	uniform_int_distribution<int> distribution(0,num_particles-1);
+
+	int index = distribution(generator);
+	double beta = 0.0;
+	// https://stackoverflow.com/questions/10158756/using-stdmax-element-on-a-vectordouble
+	double mw = *max_element(begin(particle_weights), end(particle_weights));
+
+	cout << "Indexes resampled: ";
+
 	for (int n = 0; n < num_particles; n++)
 	{
-
+		// http://www.cplusplus.com/reference/random/uniform_real_distribution/
+		uniform_real_distribution<double> distribution(0.0,1.0);
+		double rnd = distribution(generator);
+		beta += rnd * 2.0 * mw;
+		while (beta > particle_weights[index])
+		{
+			beta -= particle_weights[index];
+			index = (index + 1) % num_particles;
+		}
+		cout << index << " ";
+		resampled_particles.push_back(particles[index]);
 	}
+	cout << endl;
+	particles = resampled_particles;
 
 }
 
