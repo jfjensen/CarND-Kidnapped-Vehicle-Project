@@ -13,6 +13,10 @@
 
 #include "particle_filter.h"
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
