@@ -9,3 +9,5 @@ particle_filter.cpp
 *.zip
 T2_simulator_Data
 T2_simulator.exe
+data/best_particles_pass.txt
+data/best_particles_fail.txt

@@ -23,7 +23,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
-	num_particles = 5;//100;
+	num_particles = 80;
 
 	weights.resize(num_particles);
 
@@ -138,6 +138,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 	double sum_weights = 0.0;
 
+	vector<int> associations;
+	vector<double> sense_x;
+	vector<double> sense_y;
+
 	for (int n = 0; n < num_particles; n++)
 	{
 
@@ -155,7 +159,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			LandmarkObs obs = observations[i];
 			double obs_x, obs_y;
 
-			obs_x = x_f + (obs.x * cos(theta_f)) + (obs.y * sin(theta_f));// deliberate error!!!!!!!!!!!!!!!!!! + should be -
+			obs_x = x_f + (obs.x * cos(theta_f)) - (obs.y * sin(theta_f));// deliberate error!!!!!!!!!!!!!!!!!! + should be -
 			obs_y = y_f + (obs.x * sin(theta_f)) + (obs.y * cos(theta_f));
 
 			vector<double> ranges;
@@ -189,6 +193,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 			weight *= (exp(-0.5*term))/(2*M_PI*std_x*std_y); 
 			
+			associations.push_back(closest_landmark.id_i);
+			sense_x.push_back(obs_x);
+			sense_y.push_back(obs_y);
+
 
 		}
 
@@ -196,7 +204,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		current_particle.weight = weight;
 		sum_weights += weight;
 
+		current_particle = SetAssociations(current_particle, associations, sense_x, sense_y);
+
 		particles[n] = current_particle;
+
+
 
 	}
 
